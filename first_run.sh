@@ -10,9 +10,9 @@ vagrant up admin
 vagrant up node1
 vagrant up node2
 
-echo "-----"
-echo "Applying provision to nodes"
-vagrant provision
+#echo "-----"
+#echo "Applying provision to nodes"
+#vagrant provision
 
 echo "-----"
 echo "Reboot the nodes and apply guest addition through plugin"

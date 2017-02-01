@@ -135,8 +135,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       node.vm.synced_folder ".", "/vagrant", disabled: true
 
-      node.vm.synced_folder _shared_software_src_path, _shared_software_dst_path
-      node.vm.synced_folder _shared_puppet_src_path, _shared_puppet_dst_path
+      # DART check if plugin are disabled
+      if Vagrant.has_plugin?("vagrant-vbguest")
+        # DART updated local folder with software installers
+        #admin.vm.synced_folder "/Users/edwin/software", "/software"
+        node.vm.synced_folder _shared_software_src_path, _shared_software_dst_path
+        # DART added "puppet" as synced folder instead of using provision copy mechanism
+        node.vm.synced_folder _shared_puppet_src_path, _shared_puppet_dst_path
+      end
 
       node.vm.provider :virtualbox do |vb|
         vb.memory = "1532"
