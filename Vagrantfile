@@ -113,8 +113,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
 
       # DART use provision to fix prerequirement
-      node.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"
-      
+      node.vm.provision :shell, path: "./config/pre-install.sh"
+      node.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"      
       node.vm.provision :shell, path: "./config/post-install.sh"
       
       # DART install and config puppet
