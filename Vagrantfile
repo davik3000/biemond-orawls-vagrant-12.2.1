@@ -8,60 +8,78 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "admin" , primary: true do |admin|
 
-    admin.vm.box = "centos-7-1511-x86_64"
-    admin.vm.box_url = "https://dl.dropboxusercontent.com/s/filvjntyct1wuxe/centos-7-1511-x86_64.box"
+    #admin.vm.box = "centos-7-1511-x86_64"
+    #admin.vm.box_url = "https://dl.dropboxusercontent.com/s/filvjntyct1wuxe/centos-7-1511-x86_64.box"
+    admin.vm.box = "centos/7"
 
-    admin.vm.provider :vmware_fusion do |v, override|
-      override.vm.box = "centos-7-1511-x86_64-vmware"
-      override.vm.box_url = "https://dl.dropboxusercontent.com/s/h5g5kqjrzq5dn53/centos-7-1511-x86_64-vmware.box"
-      #override.vm.box = "OEL7_2-x86_64-vmware"
-      #override.vm.box_url = "https://dl.dropboxusercontent.com/s/ymr62ku2vjjdhup/OEL7_2-x86_64-vmware.box"
-    end
+    #admin.vm.provider :vmware_fusion do |v, override|
+    #  override.vm.box = "centos-7-1511-x86_64-vmware"
+    #  override.vm.box_url = "https://dl.dropboxusercontent.com/s/h5g5kqjrzq5dn53/centos-7-1511-x86_64-vmware.box"
+    #  #override.vm.box = "OEL7_2-x86_64-vmware"
+    #  #override.vm.box_url = "https://dl.dropboxusercontent.com/s/ymr62ku2vjjdhup/OEL7_2-x86_64-vmware.box"
+    #end
 
-    admin.vm.hostname = "admin.example.com"
-    admin.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
-    admin.vm.synced_folder "/Users/edwin/software", "/software"
+    #admin.vm.hostname = "admin.example.com"
+    admin.vm.hostname = "admin.orawls.com"
+    #admin.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
+    admin.vm.synced_folder ".", "/vagrant", disabled: true
+    #admin.vm.synced_folder "/Users/edwin/software", "/software"
+    admin.vm.synced_folder "./software", "/var/tmp/software"
+	
+	admin.vm.synced_folder "./puppet", "/var/tmp/puppet"
 
-    admin.vm.network :private_network, ip: "10.10.10.10"
+    #admin.vm.network :private_network, ip: "10.10.10.10"
 
-    admin.vm.provider :vmware_fusion do |vb|
-      vb.vmx["numvcpus"] = "2"
-      vb.vmx["memsize"] = "2048"
-    end
+    #admin.vm.provider :vmware_fusion do |vb|
+    #  vb.vmx["numvcpus"] = "2"
+    #  vb.vmx["memsize"] = "2048"
+    #end
 
     admin.vm.provider :virtualbox do |vb|
-      vb.customize ["modifyvm", :id, "--memory", "2048"]
-      vb.customize ["modifyvm", :id, "--name", "admin"]
-      vb.customize ["modifyvm", :id, "--cpus"  , 2]
+      #vb.customize ["modifyvm", :id, "--memory", "2048"]
+      vb.memory = "2048"
+      #vb.customize ["modifyvm", :id, "--name", "admin"]
+      vb.name = "orawls-admin"
+      #vb.customize ["modifyvm", :id, "--cpus"  , 2]
+      vb.cpus = 2
     end
 
-    admin.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppetlabs/code/hiera.yaml;rm -rf /etc/puppetlabs/code/modules;ln -sf /vagrant/puppet/environments/development/modules /etc/puppetlabs/code/modules"
+    #admin.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppetlabs/code/hiera.yaml;rm -rf /etc/puppetlabs/code/modules;ln -sf /vagrant/puppet/environments/development/modules /etc/puppetlabs/code/modules"
+    admin.vm.provision :file, source: "./config", destination: "/var/tmp/config"
+    #admin.vm.provision :file, source: "./puppet", destination: "/var/tmp/puppet"
+
+    admin.vm.provision :shell, path: "./config/post-install.sh"
+
+    admin.vm.provision :shell, path: "./config/puppet_install.sh"
+    admin.vm.provision :shell, path: "./config/puppet_config.sh"
 
     # in order to enable this shared folder, execute first the following in the host machine: mkdir log_puppet_weblogic && chmod a+rwx log_puppet_weblogic
     #admin.vm.synced_folder "./log_puppet_weblogic", "/tmp/log_puppet_weblogic", :mount_options => ["dmode=777","fmode=777"]
 
-    admin.vm.provision :puppet do |puppet|
-      puppet.environment_path     = "puppet/environments"
-      puppet.environment          = "development"
-
-      puppet.manifests_path       = "puppet/environments/development/manifests"
-      puppet.manifest_file        = "site.pp"
-
-      puppet.options           = [
-                                  '--verbose',
-                                  '--report',
-                                  '--trace',
-#                                  '--debug',
-#                                  '--parser future',
-                                  '--strict_variables',
-                                  '--hiera_config /vagrant/puppet/hiera.yaml'
-                                 ]
-      puppet.facter = {
-        "environment"     => "development",
-        "vm_type"         => "vagrant",
-      }
-
-    end
+    #admin.vm.provision :puppet do |puppet|
+    #  puppet.environment_path = "./puppet/environments"
+    #  puppet.environment      = "development"
+    #
+    #  puppet.manifests_path = "./puppet/environments/development/manifests"
+    #  puppet.manifest_file  = "site.pp"
+    #
+    #  puppet.options = [
+    #    '--verbose',
+    #    '--report',
+    #    '--trace',
+    #    #'--debug',
+    #    #'--parser future',
+    #    '--strict_variables',
+    #    #'--hiera_config /vagrant/puppet/hiera.yaml'
+    #    '--hiera_config /var/tmp/puppet/hiera.yaml'
+    #  ]
+    #
+    #  puppet.facter = {
+    #    "environment" => "development",
+    #    "vm_type"     => "vagrant",
+    #  }
+    #
+    #end
 
   end
 
