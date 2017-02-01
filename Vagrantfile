@@ -5,6 +5,19 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  _shared_software_src_path="./software"
+  _shared_software_dst_path="/var/tmp/vagrant/software"
+  _shared_puppet_src_path="./puppet"
+  _shared_puppet_dst_path="/var/tmp/vagrant/puppet"
+
+  _provision_config_src_path="./config"
+  _provision_config_dst_path="/tmp/vagrant/config"
+
+  _provision_script_preinstall_path="./config/pre-install.sh"
+  _provision_script_postinstall_path="./config/post-install.sh"
+
+  _provision_script_puppet_install_path="./config/puppet_install.sh"
+  _provision_script_puppet_config_path="./config/puppet_config.sh"
 
   config.vm.define "admin" , primary: true do |admin|
     # DART using the official CentOS box
@@ -24,11 +37,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # DART disable /vagrant folder because of rsync settings issues with official CentOS box
     #admin.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
     admin.vm.synced_folder ".", "/vagrant", disabled: true
-    # DART updated local folder with software installers
-    #admin.vm.synced_folder "/Users/edwin/software", "/software"
-    admin.vm.synced_folder "./software", "/var/tmp/vagrant/software"
-    # DART added "puppet" as synced folder instead of using provision copy mechanism
-    admin.vm.synced_folder "./puppet", "/var/tmp/vagrant/puppet"
+
+    # DART check if plugin are disabled
+    if Vagrant.has_plugin?("vagrant-vbguest")
+      # DART updated local folder with software installers
+      #admin.vm.synced_folder "/Users/edwin/software", "/software"
+      admin.vm.synced_folder _shared_software_src_path, _shared_software_dst_path
+      # DART added "puppet" as synced folder instead of using provision copy mechanism
+      admin.vm.synced_folder _shared_puppet_src_path, _shared_puppet_dst_path
+    end
 
     # DART disabled private network
     #admin.vm.network :private_network, ip: "10.10.10.10"
@@ -45,7 +62,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.memory = "2048"
       # DART updated with Vagrant builtin command
       #vb.customize ["modifyvm", :id, "--name", "admin"]
-      vb.name = "orawls-admin"
+      vb.name = "vagrant-orawls-admin"
       # DART updated with Vagrant builtin command
       #vb.customize ["modifyvm", :id, "--cpus"  , 2]
       vb.cpus = 2
@@ -53,14 +70,30 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # DART disabled inline command, moved below into dedicated script
     #admin.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppetlabs/code/hiera.yaml;rm -rf /etc/puppetlabs/code/modules;ln -sf /vagrant/puppet/environments/development/modules /etc/puppetlabs/code/modules"
-    # DART use provision to apply prerequirement (yum updates, fixes)
-    admin.vm.provision :shell, path: "./config/pre-install.sh"
-    admin.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"
-    admin.vm.provision :shell, path: "./config/post-install.sh"
+
+    # DART use provision to apply requirement (yum updates, fixes, puppet)
+    # DART clean up config
+    admin.vm.provision :shell do |s|
+      s.path = _provision_script_preinstall_path
+      s.args = [_provision_config_dst_path]
+    end
+    # DART send config
+    admin.vm.provision :file do |f|
+      f.source = _provision_config_src_path
+      f.destination = _provision_config_dst_path
+    end
+    # DART apply config
+    admin.vm.provision :shell do |s|
+      s.path = _provision_script_postinstall_path
+      s.args = [_provision_config_dst_path]
+    end
 
     # DART install and config puppet
-    admin.vm.provision :shell, path: "./config/puppet_install.sh"
-    admin.vm.provision :shell, path: "./config/puppet_config.sh"
+    admin.vm.provision :shell, path: _provision_script_puppet_install_path
+    admin.vm.provision :shell do |s|
+      s.path = _provision_script_puppet_config_path
+      s.args = [_shared_puppet_dst_path]
+    end
 
     # in order to enable this shared folder, execute first the following in the host machine: mkdir log_puppet_weblogic && chmod a+rwx log_puppet_weblogic
     #admin.vm.synced_folder "./log_puppet_weblogic", "/tmp/log_puppet_weblogic", :mount_options => ["dmode=777","fmode=777"]
@@ -91,7 +124,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #  }
     #
     #end
-
   end
 
   # DART trying to create a loop for node creation
@@ -103,23 +135,38 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       node.vm.synced_folder ".", "/vagrant", disabled: true
 
-      node.vm.synced_folder "./software", "/var/tmp/vagrant/software"
-      node.vm.synced_folder "./puppet", "/var/tmp/vagrant/puppet"
+      node.vm.synced_folder _shared_software_src_path, _shared_software_dst_path
+      node.vm.synced_folder _shared_puppet_src_path, _shared_puppet_dst_path
 
       node.vm.provider :virtualbox do |vb|
         vb.memory = "1532"
-        vb.name = "orawls-node#{i}"
+        vb.name = "vagrant-orawls-node#{i}"
         vb.cpus = 1
       end
 
-      # DART use provision to fix prerequirement
-      node.vm.provision :shell, path: "./config/pre-install.sh"
-      node.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"      
-      node.vm.provision :shell, path: "./config/post-install.sh"
+      # DART use provision to apply requirement (yum updates, fixes, puppet)
+      # DART clean up config
+      node.vm.provision :shell do |s|
+        s.path = _provision_script_preinstall_path
+        s.args = [_provision_config_dst_path]
+      end
+      # DART send config
+      node.vm.provision :file do |f|
+        f.source = _provision_config_src_path
+        f.destination = _provision_config_dst_path
+      end
+      # DART apply config
+      node.vm.provision :shell do |s|
+        s.path = _provision_script_postinstall_path
+        s.args = [_provision_config_dst_path]
+      end
       
       # DART install and config puppet
-      node.vm.provision :shell, path: "./config/puppet_install.sh"
-      node.vm.provision :shell, path: "./config/puppet_config.sh"
+      node.vm.provision :shell, path: _provision_script_puppet_install_path
+      node.vm.provision :shell do |s|
+        s.path = _provision_script_puppet_config_path
+        s.args = [_shared_puppet_dst_path]
+      end
     end
   end
 

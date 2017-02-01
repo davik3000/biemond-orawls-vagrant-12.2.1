@@ -2,7 +2,7 @@
 
 #################################
 # Global settings
-CONFIG_DIR=/var/tmp/vagrant/config
+CONFIG_DIR=
 #################################
 
 #############
@@ -15,7 +15,7 @@ function sourceFile()
   echo "Executing: ${FILEPATH}"
 
   if [ -e ${FILEPATH} ] ; then
-    source ${FILEPATH}
+    source ${FILEPATH} "${CONFIG_DIR}"
   else
     echo "Error: cannot find ${FILEPATH}. Skipping..."
   fi;
@@ -45,34 +45,32 @@ function updatePackages()
   sourceFile ${FILEPATH}
 }
 
-function cleanUpProvisionConfig()
+function execute()
 {
-    echo "-----"
-    echo "Removing provision configuration folder..."
-    rm -rf ${CONFIG_DIR}
+  if [ -d ${CONFIG_DIR} ] ; then
+    configureProxy
+
+    # perform a silent upgrade of the system
+    updatePackages
+
+    fixSlowSSH
     
-    if [ $? -eq 0 ] ; then
-      echo "-----"
-      echo "Provision configuration removed."
-    else
-      echo "-----"
-      echo "Error: Cannot remove temporary folder for provision! You should do it manually!"
-    fi;
+    speedupGrub2Boot
+  else
+    echo "-----"
+    echo "Error: folder ${CONFIG_DIR} doesn't not exist!"
+  fi;
 }
 
 ########
 # Main #
 ########
-configureProxy
 
-# perform a silent upgrade of the system
-updatePackages
+# use argument for config folder path
+if [ -n $1 ] ; then
+  CONFIG_DIR=$1
+fi;
 
-fixSlowSSH
-
-speedupGrub2Boot
-
-# clean up
-cleanUpProvisionConfig
+execute
 
 echo "-----"
