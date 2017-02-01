@@ -53,9 +53,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # DART disabled inline command, moved below into dedicated script
     #admin.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppetlabs/code/hiera.yaml;rm -rf /etc/puppetlabs/code/modules;ln -sf /vagrant/puppet/environments/development/modules /etc/puppetlabs/code/modules"
-    # DART use provision to fix prerequirement
+    # DART use provision to apply prerequirement (yum updates, fixes)
+    admin.vm.provision :shell, path: "./config/pre-install.sh"
     admin.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"
-
     admin.vm.provision :shell, path: "./config/post-install.sh"
 
     # DART install and config puppet

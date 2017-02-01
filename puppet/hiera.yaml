@@ -1,7 +1,7 @@
 ---
 :backends: yaml
 :yaml:
-  :datadir: /var/tmp/puppet/hieradata
+  :datadir: /var/tmp/vagrant/puppet/hieradata
 :hierarchy:
   - "%{::fqdn}"
   - "%{::environment}"
