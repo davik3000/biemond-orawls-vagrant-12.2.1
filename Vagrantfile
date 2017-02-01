@@ -26,9 +26,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     admin.vm.synced_folder ".", "/vagrant", disabled: true
     # DART updated local folder with software installers
     #admin.vm.synced_folder "/Users/edwin/software", "/software"
-    admin.vm.synced_folder "./software", "/var/tmp/software"
+    admin.vm.synced_folder "./software", "/var/tmp/vagrant/software"
     # DART added "puppet" as synced folder instead of using provision copy mechanism
-    admin.vm.synced_folder "./puppet", "/var/tmp/puppet"
+    admin.vm.synced_folder "./puppet", "/var/tmp/vagrant/puppet"
 
     # DART disabled private network
     #admin.vm.network :private_network, ip: "10.10.10.10"
@@ -54,7 +54,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # DART disabled inline command, moved below into dedicated script
     #admin.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppetlabs/code/hiera.yaml;rm -rf /etc/puppetlabs/code/modules;ln -sf /vagrant/puppet/environments/development/modules /etc/puppetlabs/code/modules"
     # DART use provision to fix prerequirement
-    admin.vm.provision :file, source: "./config", destination: "/var/tmp/config"
+    admin.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"
 
     admin.vm.provision :shell, path: "./config/post-install.sh"
 
@@ -82,7 +82,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #    #'--parser future',
     #    '--strict_variables',
     #    #'--hiera_config /vagrant/puppet/hiera.yaml'
-    #    '--hiera_config /var/tmp/puppet/hiera.yaml'
+    #    '--hiera_config /var/tmp/vagrant/puppet/hiera.yaml'
     #  ]
     #
     #  puppet.facter = {
@@ -103,6 +103,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       node.vm.synced_folder ".", "/vagrant", disabled: true
 
+      node.vm.synced_folder "./software", "/var/tmp/vagrant/software"
+      node.vm.synced_folder "./puppet", "/var/tmp/vagrant/puppet"
+
       node.vm.provider :virtualbox do |vb|
         vb.memory = "1532"
         vb.name = "orawls-node#{i}"
@@ -110,7 +113,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
 
       # DART use provision to fix prerequirement
-      node.vm.provision :file, source: "./config", destination: "/var/tmp/config"
+      node.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"
       
       node.vm.provision :shell, path: "./config/post-install.sh"
       
@@ -138,9 +141,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #    node1.vm.synced_folder ".", "/vagrant", disabled: true
 #    # DART updated local folder with software installers
 #    #node1.vm.synced_folder "/Users/edwin/software", "/software"
-#    node1.vm.synced_folder "./software", "/var/tmp/software"
+#    node1.vm.synced_folder "./software", "/var/tmp/vagrant/software"
 #    # DART added "puppet" as synced folder instead of using provision copy mechanism
-#    node1.vm.synced_folder "./puppet", "/var/tmp/puppet"
+#    node1.vm.synced_folder "./puppet", "/var/tmp/vagrant/puppet"
 #
 #    # DART disabled private network
 #    #node1.vm.network :private_network, ip: "10.10.10.100"
@@ -165,7 +168,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #    # DART disabled inline command, moved below into dedicated script
 #    #node1.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppetlabs/code/hiera.yaml;rm -rf /etc/puppetlabs/code/modules;ln -sf /vagrant/puppet/modules /etc/puppetlabs/code/modules"
 #    # DART use provision to fix prerequirement
-#    node1.vm.provision :file, source: "./config", destination: "/var/tmp/config"
+#    node1.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"
 #
 #    node1.vm.provision :shell, path: "./config/post-install.sh"
 #
@@ -194,7 +197,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #    #    #'--parser future',
 #    #    '--strict_variables',
 #    #    #'--hiera_config /vagrant/puppet/hiera.yaml'
-#    #    '--hiera_config /var/tmp/puppet/hiera.yaml'
+#    #    '--hiera_config /var/tmp/vagrant/puppet/hiera.yaml'
 #    #  ]
 #    #
 #    #  puppet.facter = {
@@ -224,9 +227,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #    node2.vm.synced_folder ".", "/vagrant", disabled: true
 #    # DART updated local folder with software installers
 #    #node2.vm.synced_folder "/Users/edwin/software", "/software"
-#    node2.vm.synced_folder "./software", "/var/tmp/software"
+#    node2.vm.synced_folder "./software", "/var/tmp/vagrant/software"
 #    # DART added "puppet" as synced folder instead of using provision copy mechanism
-#    node2.vm.synced_folder "./puppet", "/var/tmp/puppet"
+#    node2.vm.synced_folder "./puppet", "/var/tmp/vagrant/puppet"
 #
 #    # DART disabled private network
 #    #node2.vm.network :private_network, ip: "10.10.10.200", auto_correct: true
@@ -251,7 +254,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #    # DART disabled inline command, moved below into dedicated script
 #    #node2.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppetlabs/code/hiera.yaml;rm -rf /etc/puppetlabs/code/modules;ln -sf /vagrant/puppet/modules /etc/puppetlabs/code/modules"
 #    # DART use provision to fix prerequirement
-#    node2.vm.provision :file, source: "./config", destination: "/var/tmp/config"
+#    node2.vm.provision :file, source: "./config", destination: "/var/tmp/vagrant/config"
 #
 #    node2.vm.provision :shell, path: "./config/post-install.sh"
 #
@@ -280,7 +283,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 #    #    #'--parser future',
 #    #    '--strict_variables',
 #    #    #'--hiera_config /vagrant/puppet/hiera.yaml'
-#    #    '--hiera_config /var/tmp/puppet/hiera.yaml'
+#    #    '--hiera_config /var/tmp/vagrant/puppet/hiera.yaml'
 #    #  ]
 #    #
 #    #  puppet.facter = {
