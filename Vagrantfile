@@ -38,7 +38,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #admin.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
     admin.vm.synced_folder ".", "/vagrant", disabled: true
 
-    # DART check if plugin are disabled
+    # DART check if plugin are not disabled
     if Vagrant.has_plugin?("vagrant-vbguest")
       # DART updated local folder with software installers
       #admin.vm.synced_folder "/Users/edwin/software", "/software"
@@ -47,8 +47,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       admin.vm.synced_folder _shared_puppet_src_path, _shared_puppet_dst_path
     end
 
-    # DART disabled private network
+    # DART disabled private network, use vbox internal networking
     #admin.vm.network :private_network, ip: "10.10.10.10"
+    admin.vm.network :private_network, ip: "10.10.10.10", virtualbox__intnet: true
 
     # DART disabled vmware provider config
     #admin.vm.provider :vmware_fusion do |vb|
@@ -143,6 +144,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         # DART added "puppet" as synced folder instead of using provision copy mechanism
         node.vm.synced_folder _shared_puppet_src_path, _shared_puppet_dst_path
       end
+
+      # DART disabled private network, use vbox internal networking
+      #admin.vm.network :private_network, ip: "10.10.10.10"
+      node.vm.network :private_network, ip: "10.10.10.1#{i}", virtualbox__intnet: true
 
       node.vm.provider :virtualbox do |vb|
         vb.memory = "1532"
