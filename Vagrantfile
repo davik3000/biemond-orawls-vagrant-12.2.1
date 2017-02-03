@@ -19,9 +19,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   _provision_script_puppet_install_path="./config/puppet_install.sh"
   _provision_script_puppet_config_path="./config/puppet_config.sh"
 
+  # DART using the official CentOS box
+  config.vm.box = "centos/7"
+
   config.vm.define "admin" , primary: true do |admin|
-    # DART using the official CentOS box
-    admin.vm.box = "centos/7"
 
     # DART disabled vmware provider config
     #admin.vm.provider :vmware_fusion do |v, override|
@@ -121,8 +122,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # DART create a loop for node creation
   (1..2).each do |i|
     config.vm.define "node#{i}" do |node|
-      node.vm.box = "centos/7"
-
       node.vm.hostname = "node#{i}.example.com"
 
       node.vm.synced_folder ".", "/vagrant", disabled: true
